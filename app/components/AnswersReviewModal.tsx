@@ -10,13 +10,15 @@ interface AnswersReviewModalProps {
   userAnswers: (number | null)[];
   isOpen: boolean;
   onClose: () => void;
+  categoryTitle?: string;
 }
 
 export const AnswersReviewModal: React.FC<AnswersReviewModalProps> = ({
   questions,
   userAnswers,
   isOpen,
-  onClose
+  onClose,
+  categoryTitle
 }) => {
   if (!isOpen) return null;
 
@@ -35,11 +37,16 @@ export const AnswersReviewModal: React.FC<AnswersReviewModalProps> = ({
               <Shield className="w-5 h-5 text-pink-400" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-white">
-                Récapitulatif des Réponses & Astuces Cyber
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                <span>Récapitulatif des Réponses</span>
+                {categoryTitle && (
+                  <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-pink-950/60 text-pink-300 border border-pink-500/30">
+                    {categoryTitle}
+                  </span>
+                )}
               </h2>
               <p className="text-xs text-slate-400">
-                10 questions analysées pour parfaire tes réflexes de sécurité
+                10 questions analysées avec solutions détaillées et astuces CSI
               </p>
             </div>
           </div>
@@ -47,7 +54,7 @@ export const AnswersReviewModal: React.FC<AnswersReviewModalProps> = ({
           <button
             onClick={handleClose}
             type="button"
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
             title="Fermer"
           >
             <X className="w-6 h-6" />
@@ -147,7 +154,7 @@ export const AnswersReviewModal: React.FC<AnswersReviewModalProps> = ({
           <button
             onClick={handleClose}
             type="button"
-            className="px-6 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm transition-colors shadow-[0_0_15px_rgba(232,62,140,0.4)]"
+            className="px-6 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm transition-colors shadow-[0_0_15px_rgba(232,62,140,0.4)] cursor-pointer"
           >
             Fermer le récapitulatif
           </button>

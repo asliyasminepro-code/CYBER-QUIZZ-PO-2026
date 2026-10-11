@@ -26,10 +26,17 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onResetToHome }) =>
           className="flex items-center gap-2.5 text-left group transition-all duration-200 focus:outline-none"
           title="Retour à l'accueil"
         >
-          <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#151B32] to-[#0B1020] border border-pink-500/40 shadow-[0_0_12px_rgba(232,62,140,0.35)] group-hover:border-pink-400 group-hover:shadow-[0_0_18px_rgba(255,45,146,0.6)] transition-all">
-            <span className="font-mono font-black text-xs tracking-tighter bg-gradient-to-r from-pink-400 to-pink-200 bg-clip-text text-transparent">
-              CSI
-            </span>
+          {/* Official CSI Club Logo */}
+          <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#151B32] to-[#0B1020] border border-pink-500/40 shadow-[0_0_12px_rgba(232,62,140,0.35)] group-hover:border-pink-400 group-hover:shadow-[0_0_18px_rgba(255,45,146,0.6)] transition-all overflow-hidden">
+            <img
+              src="/CSI_LOGO.png"
+              alt="Logo CSI"
+              width={36}
+              height={36}
+              className="w-full h-full object-contain p-0.5"
+              loading="eager"
+              decoding="async"
+            />
             <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-pink-500 animate-ping" />
           </div>
 

@@ -7,11 +7,21 @@ import { LandingPage } from "./components/LandingPage";
 import { QuizPage } from "./components/QuizPage";
 import { OctoberRoseRibbon } from "./components/OctoberRoseRibbon";
 import { Shield } from "lucide-react";
+import { QUIZ_CATEGORIES, CategoryId, QuizCategory } from "./data/questions";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<"landing" | "quiz">("landing");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<CategoryId>("cybersecurity-starter");
 
-  const handleStartQuiz = () => {
+  const selectedCategory: QuizCategory =
+    QUIZ_CATEGORIES.find(c => c.id === selectedCategoryId) || QUIZ_CATEGORIES[0];
+
+  const handleSelectCategory = (id: CategoryId) => {
+    setSelectedCategoryId(id);
+  };
+
+  const handleStartQuiz = (id: CategoryId) => {
+    setSelectedCategoryId(id);
     setCurrentView("quiz");
   };
 
@@ -30,9 +40,17 @@ export default function Home() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-6 z-10 w-full">
         {currentView === "landing" ? (
-          <LandingPage onStartQuiz={handleStartQuiz} />
+          <LandingPage
+            selectedCategoryId={selectedCategoryId}
+            onSelectCategory={handleSelectCategory}
+            onStartQuiz={handleStartQuiz}
+          />
         ) : (
-          <QuizPage onResetToHome={handleResetToHome} />
+          <QuizPage
+            category={selectedCategory}
+            onResetToHome={handleResetToHome}
+            onChangeCategory={handleResetToHome}
+          />
         )}
       </main>
 

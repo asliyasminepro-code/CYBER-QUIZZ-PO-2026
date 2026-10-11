@@ -1,7 +1,8 @@
 "use client";
+// RotationInfo is passed from QuizPage for display-only purposes
 
 import React, { useState, useEffect } from "react";
-import { Question, getQuizRank } from "../data/questions";
+import { Question, QuizRank, getQuizRank, QuizCategory } from "../data/questions";
 import { OctoberRoseRibbon } from "./OctoberRoseRibbon";
 import { AnswersReviewModal } from "./AnswersReviewModal";
 import { 
@@ -13,28 +14,48 @@ import {
   XCircle, 
   Percent, 
   Sparkles,
-  Copy,
   Check,
   ShieldCheck,
-  Award
+  Network,
+  Bug,
+  Cpu,
+  LayoutGrid
 } from "lucide-react";
 import { soundManager } from "../utils/sound";
 import { triggerVictoryConfetti } from "../utils/confetti";
+
+interface RotationInfo {
+  seen: number;
+  total: number;
+}
 
 interface ResultPageProps {
   score: number;
   totalQuestions: number;
   questions: Question[];
   userAnswers: (number | null)[];
+  category: QuizCategory;
+  rotationInfo?: RotationInfo | null;
   onRestart: () => void;
+  onChangeCategory: () => void;
 }
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  ShieldCheck: <ShieldCheck className="w-5 h-5 text-pink-400" />,
+  Network: <Network className="w-5 h-5 text-pink-400" />,
+  Bug: <Bug className="w-5 h-5 text-pink-400" />,
+  Cpu: <Cpu className="w-5 h-5 text-pink-400" />
+};
 
 export const ResultPage: React.FC<ResultPageProps> = ({
   score,
   totalQuestions,
   questions,
   userAnswers,
-  onRestart
+  category,
+  rotationInfo,
+  onRestart,
+  onChangeCategory
 }) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -46,7 +67,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({
 
   const wrongCount = totalQuestions - correctCount;
   const percentage = Math.round((correctCount / totalQuestions) * 100);
-  const rank = getQuizRank(score);
+  const rank: QuizRank = getQuizRank(score);
 
   // Score Counting animation & Victory fanfare
   useEffect(() => {
@@ -75,13 +96,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({
   // Share score logic
   const handleShare = async () => {
     soundManager.playClick();
-    const shareText = `J'ai obtenu ${score}/1000 (${rank.title} ${rank.badge}) au CYBER PINK du CSI ! 🎀🔐\nEt toi, quel est ton niveau en cybersécurité ?`;
+    const shareText = `J'ai obtenu ${score}/1000 (${rank.title} ${rank.badge}) au défi "${category.title}" du CYBER PINK CSI ! 🎀🔐\nEt toi, quel est ton niveau en cybersécurité ?`;
     const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "CYBER PINK - Quiz Cybersécurité CSI",
+          title: `CYBER PINK - ${category.title} (CSI)`,
           text: shareText,
           url: shareUrl
         });
@@ -104,6 +125,11 @@ export const ResultPage: React.FC<ResultPageProps> = ({
   const handleReplay = () => {
     soundManager.playClick();
     onRestart();
+  };
+
+  const handleBackToCategories = () => {
+    soundManager.playClick();
+    onChangeCategory();
   };
 
   const handleOpenReview = () => {
@@ -131,15 +157,22 @@ export const ResultPage: React.FC<ResultPageProps> = ({
         {/* Ambient Top Light */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-pink-500/20 blur-3xl -z-10" />
 
-        {/* Celebration Header */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pink-500/15 border border-pink-500/40 text-pink-300 font-mono text-xs sm:text-sm font-bold tracking-wider mb-4 shadow-[0_0_15px_rgba(232,62,140,0.3)]">
-          <Sparkles className="w-4 h-4 text-pink-400" />
-          <span>QUIZ TERMINÉ !</span>
-          <Sparkles className="w-4 h-4 text-pink-400" />
+        {/* Celebration Header with Category Badge */}
+        <div className="flex items-center gap-2 flex-wrap justify-center mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-500/15 border border-pink-500/40 text-pink-300 font-mono text-xs sm:text-sm font-bold tracking-wider shadow-[0_0_15px_rgba(232,62,140,0.3)]">
+            <Sparkles className="w-4 h-4 text-pink-400" />
+            <span>QUIZ TERMINÉ !</span>
+            <Sparkles className="w-4 h-4 text-pink-400" />
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0B1020]/80 border border-pink-500/30 text-white font-mono text-xs">
+            {CATEGORY_ICONS[category.icon] || <ShieldCheck className="w-4 h-4 text-pink-400" />}
+            <span className="font-semibold">{category.title}</span>
+          </div>
         </div>
 
         <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-6">
-          Ton Bilan Cyber Sécurité
+          Ton Bilan de Performance
         </h1>
 
         {/* Circular Animated Progress & Score Meter */}
@@ -245,23 +278,33 @@ export const ResultPage: React.FC<ResultPageProps> = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="w-full flex flex-col sm:flex-row gap-3 items-stretch justify-center">
-          {/* Replay */}
+        {/* Action Buttons Grid (Replay, Review, Change Category, Share) */}
+        <div className="w-full flex flex-col sm:grid sm:grid-cols-2 gap-3 items-stretch justify-center">
+          {/* Replay Same Category */}
           <button
             onClick={handleReplay}
             type="button"
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-pink-600 via-pink-500 to-fuchsia-500 hover:from-pink-500 hover:to-fuchsia-400 shadow-[0_0_20px_rgba(232,62,140,0.5)] transition-all duration-200 active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-pink-600 via-pink-500 to-fuchsia-500 hover:from-pink-500 hover:to-fuchsia-400 shadow-[0_0_20px_rgba(232,62,140,0.5)] transition-all duration-200 active:scale-95 cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>REJOUER</span>
+            <span>REJOUER CE DÉFI</span>
+          </button>
+
+          {/* Change Category / Back to Selector */}
+          <button
+            onClick={handleBackToCategories}
+            type="button"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-pink-300 bg-[#0B1020] hover:bg-pink-950/40 border border-pink-500/50 hover:border-pink-400 shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+          >
+            <LayoutGrid className="w-4 h-4 text-pink-400" />
+            <span>CHANGER DE DÉFI</span>
           </button>
 
           {/* Review Answers */}
           <button
             onClick={handleOpenReview}
             type="button"
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-slate-200 bg-[#0B1020] hover:bg-[#151B32] border border-pink-500/40 hover:border-pink-400 hover:text-white shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-slate-200 bg-[#0B1020] hover:bg-[#151B32] border border-slate-700/60 hover:border-slate-500 hover:text-white shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
           >
             <Eye className="w-4 h-4 text-pink-400" />
             <span>VOIR LES BONNES RÉPONSES</span>
@@ -271,7 +314,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({
           <button
             onClick={handleShare}
             type="button"
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-pink-300 bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/60 hover:border-pink-400 shadow-[0_0_15px_rgba(232,62,140,0.3)] transition-all duration-200 active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-pink-300 bg-pink-950/30 hover:bg-pink-900/40 border border-pink-500/40 hover:border-pink-400 shadow-[0_0_15px_rgba(232,62,140,0.2)] transition-all duration-200 active:scale-95 cursor-pointer"
           >
             <Share2 className="w-4 h-4 text-pink-400" />
             <span>PARTAGER MON SCORE</span>
@@ -279,7 +322,20 @@ export const ResultPage: React.FC<ResultPageProps> = ({
         </div>
       </div>
 
-      {/* Octobre Rose Awareness Banner (Section 8) */}
+      {/* Rotation cycle progress hint */}
+      {rotationInfo && rotationInfo.total > 10 && (
+        <div className="text-center text-xs font-mono text-slate-500 flex items-center justify-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-pink-500/50" />
+          <span>
+            {rotationInfo.seen < rotationInfo.total
+              ? `${rotationInfo.seen} / ${rotationInfo.total} questions de la banque explorées dans ce cycle`
+              : `Cycle complet ! Les questions vont maintenant se réinitialiser`
+            }
+          </span>
+        </div>
+      )}
+
+      {/* Octobre Rose Awareness Banner */}
       <div className="rounded-3xl border border-pink-500/30 bg-[#151B32]/70 backdrop-blur-xl p-5 sm:p-6 flex items-center gap-4 text-left shadow-lg">
         <OctoberRoseRibbon size="md" animated={true} />
         <div className="flex-1">
@@ -298,6 +354,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({
         onClose={() => setShowReviewModal(false)}
         questions={questions}
         userAnswers={userAnswers}
+        categoryTitle={category.title}
       />
     </div>
   );
